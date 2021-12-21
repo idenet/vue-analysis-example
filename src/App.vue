@@ -1,12 +1,24 @@
 <template>
   <div id="app">
-    <div id="nav">
+    <!-- <div id="nav">
       <router-link to="/">Home</router-link> |
       <router-link to="/about">About</router-link>
     </div>
-    <router-view/>
+    <router-view/> -->
+    <li><a href="https://twitter.com/vuejs" target="_blank" rel="noopener">Twitter</a></li>
+    <HelloWorld msg="hello"></HelloWorld>
   </div>
 </template>
+
+<script>
+// import HelloWorld from '@/components/HelloWorld'
+export default {
+  name: 'App',
+  components: {
+    // HelloWorld
+  }
+}
+</script>
 
 <style>
 #app {
