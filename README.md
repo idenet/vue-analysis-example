@@ -204,3 +204,44 @@ Vue.component('HelloWorld', AsyncComp)
 `forceRender`执行 `$forceUpdate`触发渲染
 
 原理上三种并没有什么不用，但是第三种巧妙的通过对象和`settimeout`实现了延迟和等待时长
+
+## data属性递归调用的处理
+
+```js
+data () {
+  const a = {}
+  const b = {}
+  b.a = a
+  a.b = b
+  return {
+    a: a
+  }
+}
+```
+断点处
+```js
+function observe (value, asRootData) {
+  debugger
+  if (!isObject(value) || value instanceof VNode) {
+    return
+  }
+  var ob;
+  if (hasOwn(value, '__ob__') && value.__ob__ instanceof Observer) {
+    ob = value.__ob__;
+  } else if (
+    shouldObserve &&
+    !isServerRendering() &&
+    (Array.isArray(value) || isPlainObject(value)) &&
+    Object.isExtensible(value) &&
+    !value._isVue
+  ) {
+    ob = new Observer(value);
+  }
+  if (asRootData && ob) {
+    ob.vmCount++;
+  }
+  return ob
+}
+```
+上面就是核心代码，当vue判断他属性上没有 `__ob__` 的时候，就会执行 `new Oberver`方法，并且在其中定义一个
+不可枚举的`__ob__`属性。并且当再次进来的时候判断它上面是否有该属性，有的话就直接返回

@@ -6,7 +6,7 @@
     </div>
     <router-view/> -->
     <li><a href="https://twitter.com/vuejs" target="_blank" rel="noopener">Twitter</a></li>
-    <HelloWorld msg="hello"></HelloWorld>
+    <HelloWorld></HelloWorld>
   </div>
 </template>
 
