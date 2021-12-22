@@ -5,8 +5,14 @@
       <router-link to="/about">About</router-link>
     </div>
     <router-view/> -->
-    <li><a href="https://twitter.com/vuejs" target="_blank" rel="noopener">Twitter</a></li>
-    <HelloWorld></HelloWorld>
+    <!-- <li><a href="https://twitter.com/vuejs" target="_blank" rel="noopener">Twitter</a></li> -->
+    <!-- <HelloWorld></HelloWorld> -->
+    <img src="./assets/logo.png" />
+    <!-- <div v-if="flag">{{ msg }}</div>
+    <div v-else>{{ msg1 }}</div> -->
+    <div>{{msg}}</div>
+    <button @click="change">change</button>
+    <!-- <button @click="toggle">toggle</button> -->
   </div>
 </template>
 
@@ -14,6 +20,25 @@
 // import HelloWorld from '@/components/HelloWorld'
 export default {
   name: 'App',
+  data () {
+    return {
+      // flag: true, // 6
+      // msg: 'hello world', // 7
+      // msg1: 'hello Vue' // 8
+      msg: {
+        a: 1
+      }
+    }
+  },
+  methods: {
+    change () {
+      this.$set(this.msg, 'b', 4)
+      // this.msg = Math.random()
+    },
+    toggle () {
+      this.flag = !this.flag
+    }
+  },
   components: {
     // HelloWorld
   }

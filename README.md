@@ -245,3 +245,169 @@ function observe (value, asRootData) {
 ```
 上面就是核心代码，当vue判断他属性上没有 `__ob__` 的时候，就会执行 `new Oberver`方法，并且在其中定义一个
 不可枚举的`__ob__`属性。并且当再次进来的时候判断它上面是否有该属性，有的话就直接返回
+
+## 依赖新增和依赖清除
+
+```vue
+<div v-if="flag">{{ msg }}</div>
+<div v-else>{{ msg1 }}</div>
+<button @click="change">change</button>
+<button @click="toggle">toggle</button>
+
+ methods: {
+    change () {
+      this.msg = Math.random()
+    },
+    toggle () {
+      this.flag = !this.flag
+    }
+},
+```
+
+断点处
+
+```js
+function mountComponent() {
+  
+  updateComponent = function () {
+    debugger
+    vm._update(vm._render(), hydrating)
+  }
+  ...
+  debugger
+  new Watch()
+}
+ // 响应式收集处
+function defineReactive$$1 () {
+ Object.defineProperty(obj, key, {
+  enumerable: true,
+  configurable: true,
+  get: function reactiveGetter () {
+    debugger
+    var value = getter ? getter.call(obj) : val
+    if (Dep.target) {
+      dep.depend()
+      if (childOb) {
+        childOb.dep.depend()
+        if (Array.isArray(value)) {
+          dependArray(value)
+        }
+      }
+    }
+    return value
+  },
+}
+// get 方法处
+Watcher.prototype.get = function get () {
+  pushTarget(this)
+  var value
+  var vm = this.vm
+  try {
+    value = this.getter.call(vm, vm)
+  } catch (e) {
+    if (this.user) {
+      handleError(e, vm, ("getter for watcher \"" + (this.expression) + "\""))
+    } else {
+      throw e
+    }
+  } finally {
+    // "touch" every property so they are all tracked as
+    // dependencies for deep watching
+    if (this.deep) {
+      traverse(value)
+    }
+    debugger
+    popTarget()
+    this.cleanupDeps()
+  }
+  return value
+}
+```
+
+首次收集依赖后，当我们再次修改属性，点击change方法会再次触发依赖收集，这时`newdeps`是空的，
+但是上一次收集的记录，`deps`是有的，这时候vue就不会进入到`adddep`方法，因此也就不会再次收集依赖
+
+而当我们toggle这个属性，即`msg`不显示，那么这时候，也会触发依赖收集，这时候在`cleanupDeps`的时候，我们发现在这段方法中
+
+```js
+let i = this.deps.length
+while (i--) {
+  // 有时候新的已经不监听旧的属性了，这时候就需要删除旧属性的watcher
+  // 循环查找dep在newdepids是否不存在
+  const dep = this.deps[i]
+  if (!this.newDepIds.has(dep.id)) {
+    // 将该观察者对象从Dep实例中移除
+    dep.removeSub(this)
+  }
+}
+```
+循环遍历了上一次的`deps`，当其中存在`newdeps`中不存在的依赖时，就会通过`removeSub`删除依赖，这样
+就不会出现我不监听依赖了，但是还是会重新渲染一遍的情况，做到了性能优化
+
+## $set
+
+例子
+
+```html
+<div>{{msg}}</div>
+<button @click="change">change</button>
+```
+
+```js
+data () {
+  return {
+    // flag: true, // 6
+    // msg: 'hello world', // 7
+    // msg1: 'hello Vue' // 8
+    msg: {
+      a: 1
+    }
+  }
+},
+change () {
+  this.$set(this.msg, 'b', 4)
+  // this.msg = Math.random()
+},
+```
+
+断点
+
+```js
+function set (target, key, val) {
+  ...
+  debugger
+  defineReactive$$1(ob.value, key, val)
+  ob.dep.notify()
+  return val
+}
+function defineReactive$$1 (
+  obj,
+  key,
+  val,
+  customSetter,
+  shallow
+){
+var childOb = !shallow && observe(val)
+Object.defineProperty(obj, key, {
+  enumerable: true,
+  configurable: true,
+  get: function reactiveGetter () {
+      ...
+      dep.depend()
+      if (childOb) {
+        debugger
+        childOb.dep.depend()
+        if (Array.isArray(value)) {
+          dependArray(value)
+        }
+      }
+    }
+    return value
+  },
+}
+
+```
+
+在这里断点后单步调试我们发现，当首次他会为最外层`msg`对象先做一层响应式监听，这里会有`__ob__`。
+然后通过递归对`msg`做响应式处理，并且也添加了一个`__ob__`并且闭包了`childOb`。这里因为`childObj`有值，所以会触发给`__ob__`中的`deps`再添加了一个依赖。
+然后执行到`$set`先`defineReactive$$1(ob.value, key, val)`给`msg.__ob__`添加了新属性。然后运行`ob.dep.notify()`，执行了ob中dep的渲染
