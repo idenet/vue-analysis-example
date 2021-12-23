@@ -411,3 +411,108 @@ Object.defineProperty(obj, key, {
 在这里断点后单步调试我们发现，当首次他会为最外层`msg`对象先做一层响应式监听，这里会有`__ob__`。
 然后通过递归对`msg`做响应式处理，并且也添加了一个`__ob__`并且闭包了`childOb`。这里因为`childObj`有值，所以会触发给`__ob__`中的`deps`再添加了一个依赖。
 然后执行到`$set`先`defineReactive$$1(ob.value, key, val)`给`msg.__ob__`添加了新属性。然后运行`ob.dep.notify()`，执行了ob中dep的渲染
+
+
+## computed和计算watcher
+
+使用computedApp的代码，在
+
+```js
+ Vue.extend = function() {
+  if (Sub.options.computed) {
+    debugger
+    initComputed$1(Sub)
+  }
+}
+function initState (vm) {
+  ...
+  debugger
+  if (opts.computed) { initComputed(vm, opts.computed) }
+  ...
+}
+
+function createComputedGetter (key) {
+  // 计算属性拦截器
+  return function computedGetter () {
+    debugger
+    const watcher = this._computedWatchers && this._computedWatchers[key]
+    if (watcher) {
+      // dirty = lazy = true
+      // 执行了 this.get 对 计算属性里的方法的data值做了一次依赖
+      // 求值运算 计算watcher
+      if (watcher.dirty) {
+        watcher.evaluate()
+      }
+      if (Dep.target) {
+        watcher.depend()
+      }
+      return watcher.value
+    }
+  }
+}
+```
+
+首先要注意，我们的代码是写在组件中的，所以初次的`new Vue`我们不会运行
+```js{2}
+ if (!(key in vm)) {
+  defineComputed(vm, key, userDef)
+}
+```
+而是在`Vue.extend`中运行的，在申明了`computedGetter`之后，首次渲染`name`的时候我们就会执行到这个方法了
+这时候当前watcher，我们观察是有`dirty=lazy=true`的值，所以我们可以称它为 **计算watcher** 。这时候我们就给当前watcher
+的dep依赖，添加了这个watcher.
+然后切换到下一步，
+
+```js
+if (Dep.target) {
+  watcher.depend()
+}
+```
+这时候`Dep.target`是渲染watcher，然后给这个`subs`也就是添加了计算watcher的subs，添加了渲染Watcher。结束操作
+
+这时候点击`change`方法，在
+
+```js
+set: function reactiveSetter (newVal) {
+  debugger
+  ...
+  dep.notify()
+}
+```
+
+主要在这里，在进入该方法后，我们会发现该依赖触发的时候`subs`中有两个watcher，计算watcher和渲染watcher
+```js
+update () {
+  /* istanbul ignore else */
+  // 计算属性值是不参与更新的
+  if (this.lazy) {
+    this.dirty = true
+    // 是否同步更新变化
+  } else if (this.sync) {
+    this.run()
+  } else {
+    // 将当前观察者对象放到一个异步更新队列
+    queueWatcher(this)
+  }
+}
+```
+计算watcher直接跳过，第二个渲染watcher会放到异步队列等待更新
+
+## watch
+
+查看最新的`watchApp.vue`，在`computed`的相当位置打上断点。
+单步调试可以发现，`useless`走的和普通`data`数据没什么不同，只不过watcher换成了用户watcher
+`user=true`。而`name`因为在computed已经定义，所以它走到的是`computed`的依赖流程。这时候我们可以发现，和上面一样，第一次收集了计算watcher的依赖。第二次收集的才是用户watcher。并且通过
+```js
+// 立即执行
+if (options.immediate) {
+  const info = `callback for immediate watcher "${watcher.expression}"`
+  pushTarget()
+  // 获取观察者实例对象，执行了 this.get
+  invokeWithErrorHandling(cb, vm, [watcher.value], vm, info)
+  popTarget()
+}
+```
+马上求值了了一次。而`nested`通过`traverse`方法递归调用收集依赖，并通过__ob__避免循环调用。
+点击`change`查看set流程的时候我们发现，`useless`通过update方法放到了`queueWatcher`执行队列中，
+而`nested`因为有`sync`属性，直接执行了`run`方法
