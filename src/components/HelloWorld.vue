@@ -1,26 +1,32 @@
 <template>
-  <div class="hello">
-    <h1>{{ msg.a }}</h1>
+  <div class="hello" v-if="flag">
+    <ul >
+      <div>erterte</div>
+      <div>erterte</div>
+      <div>erterte</div>
+      <div>erterte</div>
+    </ul>
   </div>
+    <ul v-else>
+      <li>我是切换</li>
+      <li>我是切换</li>
+      <li>我是切换</li>
+      <li>我是切换</li>
+    </ul>
 </template>
 
 <script>
 export default {
   name: 'HelloWorld',
+  props: ['flag'],
   data () {
-    const a = {}
-    const b = {}
-    b.a = a
-    a.b = b
-    return {
-      a: a
-    }
+
   }
 }
 </script>
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
-<style scoped>
+<style>
 h3 {
   margin: 40px 0 0;
 }

@@ -516,3 +516,22 @@ if (options.immediate) {
 马上求值了了一次。而`nested`通过`traverse`方法递归调用收集依赖，并通过__ob__避免循环调用。
 点击`change`查看set流程的时候我们发现，`useless`通过update方法放到了`queueWatcher`执行队列中，
 而`nested`因为有`sync`属性，直接执行了`run`方法
+
+## 组件更新
+
+查看`compPatch.vue`代码，在
+```js
+function updateChildComponent() {
+  debugger
+}
+function patch() {
+  debugger
+}
+function defineReactive$$1() {
+  set: function reactiveSetter() {
+    debugger
+  }
+}
+```
+首次执行全部跳过，点击`toggle`方法后，在我们执行到`patch`比较新旧App组件的时候，会执行
+`patchVnode`， 然后比较两个节点是否相等，然后执行`updateChildren->prepatch`拿到oldVnode的实例

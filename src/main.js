@@ -1,6 +1,7 @@
 import Vue from 'vue'
 // import App from './App.vue'
-import App2 from './watchApp.vue'
+// import App2 from './watchApp.vue'
+import App from './compPatch.vue'
 // import { child } from './test1.js'
 
 Vue.config.productionTip = false
@@ -59,7 +60,7 @@ Vue.config.productionTip = false
 // Vue.component('HelloWorld', AsyncComp)
 
 const vm = new Vue({
-  render: h => h(App2)
+  render: h => h(App)
   // template: '<app></app>' 例子3
 }).$mount('#app')
 
