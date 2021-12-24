@@ -1,7 +1,8 @@
 import Vue from 'vue'
 // import App from './App.vue'
 // import App2 from './watchApp.vue'
-import App from './compPatch.vue'
+// import App from './compPatch.vue'
+import App from './updateChild.vue'
 // import { child } from './test1.js'
 
 Vue.config.productionTip = false

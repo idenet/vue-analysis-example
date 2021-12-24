@@ -533,5 +533,13 @@ function defineReactive$$1() {
   }
 }
 ```
-首次执行全部跳过，点击`toggle`方法后，在我们执行到`patch`比较新旧App组件的时候，会执行
-`patchVnode`， 然后比较两个节点是否相等，然后执行`updateChildren->prepatch`拿到oldVnode的实例
+首次执行全部跳过，点击`toggle`方法后，在`patch`方法中，首先会判断新旧节点
+
+1. 新旧节点不同
+
+不同很好处理，直接创建新节点，然后找到其父占位节点，更新它（执行一些钩子函数），然后删除旧节点
+
+2. 新旧节点相同
+
+执行`patchVnode`方法，将新的vnode patch到旧节点上，当更新的是一个组件时执行了`prepatch`方法，
+拿到新的组件配置和实例，然后执行`updateChildComponent`。 将占位符 vm.$vnode 更新、slot 更新，listeners 更新，props 更新等等。然后执行`update`钩子。最后对dom节点进行更新。当然如果再碰到组件会继续上面的内容。最后执行组件自定义的钩子函数
