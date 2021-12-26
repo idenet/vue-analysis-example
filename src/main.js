@@ -1,9 +1,4 @@
 import Vue from 'vue'
-// import App from './App.vue'
-// import App2 from './watchApp.vue'
-// import App from './compPatch.vue'
-import App from './updateChild.vue'
-// import { child } from './test1.js'
 
 Vue.config.productionTip = false
 
@@ -60,9 +55,60 @@ Vue.config.productionTip = false
 // }
 // Vue.component('HelloWorld', AsyncComp)
 
+// const vm = new Vue({
+//   render: h => h(App)
+//   // template: '<app></app>' 例子3
+// }).$mount('#app')
+
+// const vm = new Vue({
+//   el: '#app',
+//   template: `<ul :class="bindCls" class="list" v-if="isShow">
+//     <li v-for="(item,index) in data" @click="clickItem(index)">{{item}}:{{index}}</li>
+// </ul>`,
+//   data () {
+//     return {
+//       bindCls: 'a',
+//       isShow: true,
+//       data: ['A', 'B', 'C', 'D']
+//     }
+//   },
+//   methods: {
+//     clickItem (index) {
+//       console.log(index)
+//     }
+//   }
+// })
+
+// "{on:{"click":function($event){return clickHandler($event)}},"
+const Child = {
+  template: '<button @click="clickHandler($event)">' +
+    'click me' +
+    '</button>',
+  methods: {
+    clickHandler (e) {
+      console.log('Button clicked!', e)
+      this.$emit('select')
+    }
+  }
+}
+
+// with(this){return _c('div',[_c('child',{on:{\"select\":selectHandler},nativeOn:{\"click\":function($event){$event.preventDefault();return clickHandler.apply(null, arguments)}}})],1)}
 const vm = new Vue({
-  render: h => h(App)
-  // template: '<app></app>' 例子3
-}).$mount('#app')
+  el: '#app',
+  template: '<div>' +
+    '<child @select="selectHandler" @click.native.prevent="clickHandler"></child>' +
+    '</div>',
+  methods: {
+    clickHandler () {
+      console.log('Child clicked!')
+    },
+    selectHandler () {
+      console.log('Child select!')
+    }
+  },
+  components: {
+    Child
+  }
+})
 
 console.log(vm)

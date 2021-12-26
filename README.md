@@ -543,3 +543,134 @@ function defineReactive$$1() {
 
 执行`patchVnode`方法，将新的vnode patch到旧节点上，当更新的是一个组件时执行了`prepatch`方法，
 拿到新的组件配置和实例，然后执行`updateChildComponent`。 将占位符 vm.$vnode 更新、slot 更新，listeners 更新，props 更新等等。然后执行`update`钩子。最后对dom节点进行更新。当然如果再碰到组件会继续上面的内容。最后执行组件自定义的钩子函数
+
+
+## event
+
+例子代码
+```js
+// "{on:{"click":function($event){return clickHandler($event)}},"
+const Child = {
+  template: '<button @click="clickHandler($event)">' +
+    'click me' +
+    '</button>',
+  methods: {
+    clickHandler (e) {
+      console.log('Button clicked!', e)
+      this.$emit('select')
+    }
+  }
+}
+
+// with(this){return _c('div',[_c('child',{on:{\"select\":selectHandler},nativeOn:{\"click\":function($event){$event.preventDefault();return clickHandler.apply(null, arguments)}}})],1)}
+const vm = new Vue({
+  el: '#app',
+  template: '<div>' +
+    '<child @select="selectHandler" @click.native.prevent="clickHandler"></child>' +
+    '</div>',
+  methods: {
+    clickHandler () {
+      console.log('Child clicked!')
+    },
+    selectHandler () {
+      console.log('Child select!')
+    }
+  },
+  components: {
+    Child
+  }
+})
+
+```
+断点位置
+
+```js
+// compiler/parse/index.js
+function processAttrs(el) {
+  debugger
+}
+function genData$2 (el, state) {
+  debugger
+}
+```
+编译时，在 `processAttrs`方法中，拿到`el.attrsList`在实例中存在两种情况
+1. 不具有修饰符，被转化成
+```js
+event: {
+  select: {
+    value: 'selectHandler'
+  }
+}
+```
+2. 具有修饰符， 被转化成
+```js
+nativeEvents: {
+  click: {
+    vlue: "clickHandler"
+  }
+}
+```
+`parse`完成后，经过`gencode`的`genData`方法生成对应的字符串代码
+```js
+"{on:{"select":selectHandler},"
+// 原生dom事件
+"nativeOn:{"click":function($event){$event.preventDefault();return clickHandler.apply(null, arguments)}},"
+```
+可以看到在具有修饰符的状态下，其实就是`vue`将代码写好了，然后通过一个函数再去执行用户的代码，并且可以看到`event`通过`$event`传递。
+最终我们就拿到了一个被`with`包裹的字符串
+
+```js
+with(this){
+  return _c('div',[_c('child',{on:{\"select\":selectHandler},nativeOn:{\"click\":function($event){$event.preventDefault();return clickHandler.apply(null, arguments)}}})],1)
+  }
+```
+同理 子组件的方法
+
+```js
+"{on:{"click":function($event){return clickHandler($event)}},"
+```
+
+上面就是解析完成了，完成后就是对代码的执行。
+
+```js
+function updateDOMListeners (oldVnode, vnode) {
+  debugger
+}
+function add$1 (
+  name,
+  handler,
+  capture,
+  passive
+) {
+  debugger
+}
+```
+根据执行堆栈发现，在`createElm`以后，执行`invokeCreateHooks`，然后执行了 `updateDOMListeners`
+最后执行`add`方法将函数添加到目标事件监听上。
+
+点击执行创建的监听事件，执行的其实是`createFnInvoker`返回的`invoker`函数，里面保存了执行数组，顺序执行
+
+对于**自定义事件**，vue的操作略有不同
+
+断点
+
+```js
+Vue.prototype._init = function () {
+ if (options && options._isComponent) {
+   debugger
+   // optimize internal component instantiation
+   // since dynamic options merging is pretty slow, and none of the
+   // internal component options needs special treatment.
+   initInternalComponent(vm, options)
+  }
+}
+Vue.prototype.$emit = function(event) {
+  debugger
+}
+```
+我们可以看到组件会执行`initInternalComponent`，在其中会拿到`_parentListeners`这里保存的就是父组件的回调方法。然后在`initEvent`中会执行`updateComponentListeners--->updateListeners`，注意这里不同的是，我们将`add`方法传入到了`updateListeners`。所以会执行到`Vue.prototype.$on`方法。这样自定义事件的添加就结束了
+
+执行过程：
+点击 事件，触发`$emit`方法，同样会执行`invoker`函数。然后就会执行到父组件上的回调方法。
+
+总结：**可以看到其实自定义事件是往当前实例上派发的。写在父组件上的只是一个回调方法**
