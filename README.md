@@ -674,3 +674,58 @@ Vue.prototype.$emit = function(event) {
 点击 事件，触发`$emit`方法，同样会执行`invoker`函数。然后就会执行到父组件上的回调方法。
 
 总结：**可以看到其实自定义事件是往当前实例上派发的。写在父组件上的只是一个回调方法**
+
+
+## v-model
+
+```js
+const vm = new Vue({
+  el: '#app',
+  template: `<div>
+    <p>Message is {{message}}</p>
+    <input type="text" v-model="message" />
+  </div>`,
+  data () {
+    return {
+      message: ''
+    }
+  }
+})
+```
+断点处
+
+```js
+var code = generate(ast, options)
+debugger
+
+function processAttrs(el) {
+  if (dirRE.test(name)) {
+    debugger
+  }
+}
+function genData$2 (el, state) {
+  debugger
+}
+```
+
+在`processAttrs`中首先会执行`parse`阶段，将`v-model`的内容提取，通过`addDirective`添加到`el.directives`上。这样`parse`阶段就完成了。
+
+之后执行`genData`生成代码字符串。在`state.directives`中拿到`model`方法，最后返回
+
+```js
+code = "if($event.target.composing)return;message=$event.target.value"
+```
+执行`addProps`，在`el`添加`prop`。即
+
+```html
+<input type="text" :value="value" >
+```
+执行`addHandler`，给`el`添加`event`。并将`input`的值指向之前的`code`。
+
+最后就会生成字符串 code
+
+```js
+"with(this){return _c('div',[_c('p',[_v(\"Message is \"+_s(message))]),_v(\" \"),_c('input',{directives:[{name:\"model\",rawName:\"v-model\",value:(message),expression:\"message\"}],attrs:{\"type\":\"text\"},domProps:{\"value\":(message)},on:{\"input\":function($event){if($event.target.composing)return;message=$event.target.value}}})])}"
+```
+
+`v-model`是一个和平台相关的`directive`所以它定义在`platform/web`中。而代码的执行是在

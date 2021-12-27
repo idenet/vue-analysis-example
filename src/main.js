@@ -80,34 +80,47 @@ Vue.config.productionTip = false
 // })
 
 // "{on:{"click":function($event){return clickHandler($event)}},"
-const Child = {
-  template: '<button @click="clickHandler($event)">' +
-    'click me' +
-    '</button>',
-  methods: {
-    clickHandler (e) {
-      console.log('Button clicked!', e)
-      this.$emit('select')
-    }
-  }
-}
+// const Child = {
+//   template: '<button @click="clickHandler($event)">' +
+//     'click me' +
+//     '</button>',
+//   methods: {
+//     clickHandler (e) {
+//       console.log('Button clicked!', e)
+//       this.$emit('select')
+//     }
+//   }
+// }
 
-// with(this){return _c('div',[_c('child',{on:{\"select\":selectHandler},nativeOn:{\"click\":function($event){$event.preventDefault();return clickHandler.apply(null, arguments)}}})],1)}
+// // with(this){return _c('div',[_c('child',{on:{\"select\":selectHandler},nativeOn:{\"click\":function($event){$event.preventDefault();return clickHandler.apply(null, arguments)}}})],1)}
+// const vm = new Vue({
+//   el: '#app',
+//   template: '<div>' +
+//     '<child @select="selectHandler" @click.native.prevent="clickHandler"></child>' +
+//     '</div>',
+//   methods: {
+//     clickHandler () {
+//       console.log('Child clicked!')
+//     },
+//     selectHandler () {
+//       console.log('Child select!')
+//     }
+//   },
+//   components: {
+//     Child
+//   }
+// })
+
 const vm = new Vue({
   el: '#app',
-  template: '<div>' +
-    '<child @select="selectHandler" @click.native.prevent="clickHandler"></child>' +
-    '</div>',
-  methods: {
-    clickHandler () {
-      console.log('Child clicked!')
-    },
-    selectHandler () {
-      console.log('Child select!')
+  template: `<div>
+    <p>Message is {{message}}</p>
+    <input type="text" v-model="message" />
+  </div>`,
+  data () {
+    return {
+      message: ''
     }
-  },
-  components: {
-    Child
   }
 })
 
