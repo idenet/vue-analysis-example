@@ -728,4 +728,43 @@ code = "if($event.target.composing)return;message=$event.target.value"
 "with(this){return _c('div',[_c('p',[_v(\"Message is \"+_s(message))]),_v(\" \"),_c('input',{directives:[{name:\"model\",rawName:\"v-model\",value:(message),expression:\"message\"}],attrs:{\"type\":\"text\"},domProps:{\"value\":(message)},on:{\"input\":function($event){if($event.target.composing)return;message=$event.target.value}}})])}"
 ```
 
-`v-model`是一个和平台相关的`directive`所以它定义在`platform/web`中。而代码的执行是在
+代码解析完成后，就到了执行环节。
+
+```js
+function _update (oldVnode, vnode) { 
+  debugger
+}
+```
+可以看debugger前的堆栈执行，也是从`createElm`中执行了`createHook`开始。首先通过`normalizeDirectives`获取到序列化好后的`v-model`对象，然后根据里面的`def`对象，添加`hook`方法。
+并通过`mergeVNodeHook`将方法保存。之后在`patch`时调用`invokeInsertHook`方法触发之前的回调。
+然后调用之前注册的`insert方法`，完成注册两个事件
+```js
+compositionstart
+compositionend
+```
+和中文输入有关。
+
+在输入中文的时候，执行`compositionend`，然后`triggle``v-model`的`input`方法
+
+**组件v-model**
+
+断点
+
+```js
+function genData$2() {
+  debugger
+}
+function createComponent() {
+  debugger
+}
+```
+组件v-model的parse过程和表单v-model相同，只有在gencode有些许不同，在`genDirectives`执行到`model`方法的时候，组件`v-model`通过`genComponentModel`生成
+```js
+"{model:{value:(message),callback:function ($$v) {message=$$v},expression:"message"}}"
+```
+之后跳到运行时，在`createComponent`中会执行`transformModel(Ctro.options, data)`
+```js
+  var prop = (options.model && options.model.prop) || 'value'
+  var event = (options.model && options.model.event) || 'input'
+```
+在这里我们可以使用子组件定义的`model`去重写默认的值，之后就会执行到`render`去触发方法完成执行

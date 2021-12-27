@@ -111,16 +111,79 @@ Vue.config.productionTip = false
 //   }
 // })
 
+// v-model 表单
+// const vm = new Vue({
+//   el: '#app',
+//   template: `<div>
+//     <p>Message is {{message}}</p>
+//     <input type="text" v-model="message" />
+//   </div>`,
+//   data () {
+//     return {
+//       message: ''
+//     }
+//   }
+// })
+
+//  v-model 组件
+// const Child = {
+//   template: '<div>' +
+//     '<input :value="value" @input="updateValue" placeholder="edit me">' +
+//     '</div>',
+//   // model: {
+//   //   prop: 'msg',
+//   //   event: 'change'
+//   // },
+//   props: ['value'],
+//   methods: {
+//     updateValue (e) {
+//       this.$emit('input', e.target.value)
+//     }
+//   }
+// }
+
+// const vm = new Vue({
+//   el: '#app',
+//   template: '<div>' +
+//     '<child v-model="message"></child>' +
+//     '<p>Message is: {{ message }}</p>' +
+//     '</div>',
+//   data () {
+//     return {
+//       message: ''
+//     }
+//   },
+//   components: {
+//     Child
+//   }
+// })
+
+const AppLayout = {
+  template: '<div class="container">' +
+    '<header><slot name="header"></slot></header>' +
+    '<main><slot>默认内容</slot></main>' +
+    '<footer><slot name="footer"></slot></footer>' +
+    '</div>'
+}
+
 const vm = new Vue({
   el: '#app',
-  template: `<div>
-    <p>Message is {{message}}</p>
-    <input type="text" v-model="message" />
-  </div>`,
+  template: '<div>' +
+    '<app-layout>' +
+    '<h1 slot="header">{{title}}</h1>' +
+    '<p>{{msg}}</p>' +
+    '<p slot="footer">{{desc}}</p>' +
+    '</app-layout>' +
+    '</div>',
   data () {
     return {
-      message: ''
+      title: '我是标题',
+      msg: '我是内容',
+      desc: '其它信息'
     }
+  },
+  components: {
+    AppLayout
   }
 })
 
