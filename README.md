@@ -828,3 +828,65 @@ with(this){return _c('div',[_c('app-layout',[_c('h1',{attrs:{\"slot\":\"header\"
 ```js
 with(this){return _c('div',{staticClass:\"container\"},[_c('header',[_t(\"header\")],2),_c('main',[_t(\"default\",function(){return [_v(\"默认内容\")]})],2),_c('footer',[_t(\"footer\")],2)])}
 ```
+
+运行时断点处
+
+```js
+function initRender() {
+  debugger
+}
+function renderSlot() {
+  debugger
+}
+```
+通过`initRender`拿到`vm.$slots`，子组件下的所有slot。然后通过`renderSlot`，如果`scopedSlotFn`有值，就拿到它的vnode节点，如果没有值，就渲染`_v`内的内容。`_v`会生成一个文本节点
+
+普通插槽：在父组件编译和渲染阶段生成vnode，所以数据的作用于在父组件，子组件渲染时直接拿到vnode
+
+## slot-scope
+
+断点处
+```js
+var code = generate(ast, options)
+debugger
+function closeElement() {
+   debugger
+   if (currentParent && !element.forbidden) {
+   }
+}
+processElement() {
+  debugger
+}
+function genData$2() {
+   debugger
+  if (el.scopedSlots) {
+    data += (genScopedSlots(el, el.scopedSlots, state)) + ","
+  }
+}
+function genSlot() {
+  debugger
+}
+```
+在执行到`el.tag = 'tempalte'`的时候，通过`processSlotContent`赋值`el.slotScope = 'props'`。然后在`closeElement`中，将规整好的`element` push 到 `currentParent（child）`中。然后在`genScopedSlots`中拿到字符串
+```js
+"{scopedSlots:_u([{key:"default",fn:function(props){return [_c('p',[_v("Hello from parent")]),_c('p',[_v(_s(props.text + props.msg))])]}}]),"
+```
+在子组件中，通过`genSlot`会生成
+
+```js
+with(this){return _c('div',{staticClass:\"child\"},[_t(\"default\",null,{\"text\":\"Hello \",\"msg\":msg})],2)}
+```
+
+运行阶段
+
+```js
+function resolveScopedSlots() {
+  debugger
+}
+function renderSlot() {
+  debugger
+}
+```
+通过`resolveScopedSlots`将`fns`解析成一个对象，放到`res`中。其实`resolveScopedSlots`就是上面的`_u`方法。之后执行到上面的`_t`即`renderSlot`方法。在这个方法中，我们主要运行了`scopedSlotFn`
+这个方法就是上面保存的`fn`，因此我们是在子组件，运行了保存的父组件`slot`内的代码。在这里生成了vnode。
+因为在子组件生成，所以我们可以方便的拿到子组件的数据进行渲染
