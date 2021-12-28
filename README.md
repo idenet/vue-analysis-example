@@ -768,3 +768,63 @@ function createComponent() {
   var event = (options.model && options.model.event) || 'input'
 ```
 在这里我们可以使用子组件定义的`model`去重写默认的值，之后就会执行到`render`去触发方法完成执行
+
+
+## slot
+
+查看例子代码
+
+断点处
+```js
+function processElement() {
+  debugger
+}
+
+function genData() {
+  debugger
+}
+
+function genSlot() {
+  debugger
+}
+var code = generate(ast, options)
+debugger
+```
+首先查看父组件的`ast`树生成过程，可以发现
+
+```js
+el: {
+  attrs: [
+    {
+      name: 'slot',
+      value: 'footer'
+    }
+  ],
+  attrsMap: {
+    slot: 'footer'
+  }
+}
+```
+通过`genData`生成代码
+```js
+with(this){return _c('div',[_c('app-layout',[_c('h1',{attrs:{\"slot\":\"header\"},slot:\"header\"},[_v(_s(title))]),_c('p',[_v(_s(msg))]),_c('p',{attrs:{\"slot\":\"footer\"},slot:\"footer\"},[_v(_s(desc))])])],1)}
+```
+在子组件，前面的没什么不同， 主要在生成阶段，会调用`genSlot`
+
+1. 如果slot内不存在内容
+
+```js
+"_t("default"}"
+```
+
+2. 如果slot存在内容
+
+```js
+"_t("default",function(){return [_v("默认内容")]}"
+```
+
+最终生成
+
+```js
+with(this){return _c('div',{staticClass:\"container\"},[_c('header',[_t(\"header\")],2),_c('main',[_t(\"default\",function(){return [_v(\"默认内容\")]})],2),_c('footer',[_t(\"footer\")],2)])}
+```
