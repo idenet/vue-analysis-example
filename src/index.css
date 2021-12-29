@@ -1,0 +1,28 @@
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.5s;
+}
+.fade-enter,
+.fade-leave-to {
+  opacity: 0;
+}
+
+.list-complete-item {
+  display: inline-block;
+  margin-right: 10px;
+}
+.list-complete-move {
+  transition: all 1s;
+}
+.list-complete-enter,
+.list-complete-leave-to {
+  opacity: 0;
+  transform: translateY(30px);
+}
+.list-complete-enter-active {
+  transition: all 1s;
+}
+.list-complete-leave-active {
+  transition: all 1s;
+  position: absolute;
+}

@@ -1,4 +1,5 @@
 import Vue from 'vue'
+import './index.css'
 
 Vue.config.productionTip = false
 
@@ -219,37 +220,84 @@ Vue.config.productionTip = false
 //   }
 // })
 
-const A = {
-  template: '<div class="a">' + '<p>A Comp</p>' + '</div>',
-  name: 'A'
-}
+// keep-alive
+// const A = {
+//   template: '<div class="a">' + '<p>A Comp</p>' + '</div>',
+//   name: 'A'
+// }
 
-const B = {
-  template: '<div class="b">' + '<p>B Comp</p>' + '</div>',
-  name: 'B'
-}
+// const B = {
+//   template: '<div class="b">' + '<p>B Comp</p>' + '</div>',
+//   name: 'B'
+// }
+
+// const vm = new Vue({
+//   el: '#app',
+//   template:
+//     '<div>' +
+//     '<keep-alive>' +
+//     '<component :is="currentComp">' +
+//     '</component>' +
+//     '</keep-alive>' +
+//     '<button @click="change">switch</button>' +
+//     '</div>',
+//   data: {
+//     currentComp: 'A'
+//   },
+//   methods: {
+//     change () {
+//       this.currentComp = this.currentComp === 'A' ? 'B' : 'A'
+//     }
+//   },
+//   components: {
+//     A,
+//     B
+//   }
+// })
+
+// transition
+// const vm = new Vue({
+//   el: '#app',
+//   template: '<div id="demo">' +
+//     '<button v-on:click="show = !show">' +
+//     'Toggle' +
+//     '</button>' +
+//     '<transition :appear="true" name="fade">' +
+//     '<p v-if="show">hello</p>' +
+//     '</transition>' +
+//     '</div>',
+//   data () {
+//     return {
+//       show: true
+//     }
+//   }
+// })
 
 const vm = new Vue({
   el: '#app',
-  template:
-    '<div>' +
-    '<keep-alive>' +
-    '<component :is="currentComp">' +
-    '</component>' +
-    '</keep-alive>' +
-    '<button @click="change">switch</button>' +
+  template: '<div id="list-complete-demo" class="demo">' +
+    '<button v-on:click="add">Add</button>' +
+    '<button v-on:click="remove">Remove</button>' +
+    '<transition-group name="list-complete" tag="p">' +
+    '<span v-for="item in items" v-bind:key="item" class="list-complete-item">' +
+    '{{ item }}' +
+    '</span>' +
+    '</transition-group>' +
     '</div>',
   data: {
-    currentComp: 'A'
+    items: [1, 2, 3, 4, 5, 6, 7, 8, 9],
+    nextNum: 10
   },
   methods: {
-    change () {
-      this.currentComp = this.currentComp === 'A' ? 'B' : 'A'
+    randomIndex: function () {
+      return Math.floor(Math.random() * this.items.length)
+    },
+    add: function () {
+      this.items.splice(this.randomIndex(), 0, this.nextNum++)
+    },
+    remove: function () {
+      this.items.splice(this.randomIndex(), 1)
     }
-  },
-  components: {
-    A,
-    B
   }
 })
 

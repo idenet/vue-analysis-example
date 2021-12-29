@@ -933,3 +933,44 @@ this.keyToCache = key
 并将当前组件的`data.keepalive = true`，返回`vnode`。然后执行该`vnode`的初始化过程，之后执行到`patch`，然后执行该`vnode`的初始化，这时候我们就能拿到`vnode`实例，然后初始化组件和`insert`。执行完组件之后，执行之前初始化的`keep-alive`组件，将`keep-alive`下的`elm`，挂载到`parentElm`下面。
 之后就执行到了`patch`方法的最后，`invokeInsertHook`方法，调用一些钩子函数，首先是组件的钩子函数`mounted`
 然后执行`keep-alive`组件的钩子函数，这里注意，在`mounted`中执行`cacheVnode`方法，该方法进行了，组件的缓存，并通过`pruneCacheEntry`方法，LRU 进行数据缓存的优化。并监听`include`和`exclude`。
+
+当点击方法触发组件的修改时，执行到`patch`方法，会先判断是否是`sameVnode`，如果是，就会执行`patchVnode`，查看执行栈，就能看到。最终执行`prepatch`, 然后执行`updateChildComponent`，在这里`keep-alive`其实和slot一样，判断是否需要强制刷新，重新解析slot，然后执行到`render`就能拿到新组建的`vnode`。
+
+之后就会运行新旧节点的`patch`，因为是走新旧节点不同的流程，所以会创建新节点，挂载，然后直接删除旧节点。
+新节点通过创建执行`create`钩子，然后挂载执行`mounted`钩子
+
+## transition
+
+```js
+render: function render (h) {
+  debugger
+}
+function _enter {
+  debugger
+}
+```
+通过render函数给，`transition`内的子节点，赋值了`key`和`data.transition`。然后进入`enter`方法，将`data.transition`解析成需要的格式。通过`mergeVNodeHook`注册`insert`钩子。
+
+然后执行到`insert`钩子，这时候dom节点上已经有p标签了。在此回调中，会执行用户设定的`enterHook`。之后我们直接看异步的`nextFrame`。这个函数其实就是`requestAnimalFrame`这个api。其中我们会先移除
+`startClass`, 然后添加`toClass`，然后申明`whenTransitionEnds`，这里面我们会通过回调移除之前的两个class
+
+## transitionGroup
+
+```js
+render:function(h) {
+  debugger
+}
+this._update = function (vnode, hydrating) {
+  debugger
+}
+updated: function updated () {
+  debugger
+}
+```
+
+首次渲染，在`render`函数中，给`children`字段每个`data.transition`赋值`transitionData`。第一次渲染不会执行重写的`patch`方法，之后就是直接渲染
+
+运行`add`方法。这时候我们具有了`prevChildren`数组，通过再次的`transition`和`pos`赋值，拿到了`kept`数组，这时候`remove`中并没有数组，所以之后的`patch`没有什么作用。两者数组没有差别。
+
+之后就执行`update`方法，要进行数组的更新了。这时候已经存在节点了，但是我们用的过渡所以他现在不可见。
+`hasMove`中通过`getComputedStyle`拿到`css`属性进行赋值。如果是`delete`方法，这时候因为`kept`值和原数组不同，就会进行重写的`patch`进行`vnode`的移除，然后才执行 原Patch
