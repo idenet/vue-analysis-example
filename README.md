@@ -890,3 +890,46 @@ function renderSlot() {
 通过`resolveScopedSlots`将`fns`解析成一个对象，放到`res`中。其实`resolveScopedSlots`就是上面的`_u`方法。之后执行到上面的`_t`即`renderSlot`方法。在这个方法中，我们主要运行了`scopedSlotFn`
 这个方法就是上面保存的`fn`，因此我们是在子组件，运行了保存的父组件`slot`内的代码。在这里生成了vnode。
 因为在子组件生成，所以我们可以方便的拿到子组件的数据进行渲染
+
+## keep-alive
+
+断点位置
+```js
+function createComponent() {
+  if (isDef((i = i.hook)) && isDef((i = i.init))) {
+     debugger
+     i(vnode, false /* hydrating */)
+   }
+   if (isDef(vnode.componentInstance)) {
+     debugger
+   }
+}
+
+const componentVNodeHooks  = {
+  init: function() {
+    debugger
+  },
+  prepatch:function() {
+    debugger
+  },
+  insert:function() {
+    debugger
+  }
+}
+function patch() {
+  debugger
+}
+render: function render () {
+  debugger
+}
+```
+`init`keep-alive组件，初始化完成后进行`render`，通过`this.$slots.default`拿到默认的`vnode`。拿到第一个组件节点。然后将组件保存到
+
+```js
+this.vnodeToCache = vnode
+this.keyToCache = key
+```
+
+并将当前组件的`data.keepalive = true`，返回`vnode`。然后执行该`vnode`的初始化过程，之后执行到`patch`，然后执行该`vnode`的初始化，这时候我们就能拿到`vnode`实例，然后初始化组件和`insert`。执行完组件之后，执行之前初始化的`keep-alive`组件，将`keep-alive`下的`elm`，挂载到`parentElm`下面。
+之后就执行到了`patch`方法的最后，`invokeInsertHook`方法，调用一些钩子函数，首先是组件的钩子函数`mounted`
+然后执行`keep-alive`组件的钩子函数，这里注意，在`mounted`中执行`cacheVnode`方法，该方法进行了，组件的缓存，并通过`pruneCacheEntry`方法，LRU 进行数据缓存的优化。并监听`include`和`exclude`。

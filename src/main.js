@@ -192,29 +192,64 @@ Vue.config.productionTip = false
 //   }
 // })
 
-const Child = {
-  template: '<div class="child">' +
-    '<slot text="Hello " :msg="msg"></slot>' +
-    '</div>',
-  data () {
-    return {
-      msg: 'Vue'
-    }
-  }
+//  slot-scope
+// const Child = {
+//   template: '<div class="child">' +
+//     '<slot text="Hello " :msg="msg"></slot>' +
+//     '</div>',
+//   data () {
+//     return {
+//       msg: 'Vue'
+//     }
+//   }
+// }
+
+// const vm = new Vue({
+//   el: '#app',
+//   template: '<div>' +
+//     '<child>' +
+//     '<template slot-scope="props">' +
+//     '<p>Hello from parent</p>' +
+//     '<p>{{ props.text + props.msg}}</p>' +
+//     '</template>' +
+//     '</child>' +
+//     '</div>',
+//   components: {
+//     Child
+//   }
+// })
+
+const A = {
+  template: '<div class="a">' + '<p>A Comp</p>' + '</div>',
+  name: 'A'
+}
+
+const B = {
+  template: '<div class="b">' + '<p>B Comp</p>' + '</div>',
+  name: 'B'
 }
 
 const vm = new Vue({
   el: '#app',
-  template: '<div>' +
-    '<child>' +
-    '<template slot-scope="props">' +
-    '<p>Hello from parent</p>' +
-    '<p>{{ props.text + props.msg}}</p>' +
-    '</template>' +
-    '</child>' +
+  template:
+    '<div>' +
+    '<keep-alive>' +
+    '<component :is="currentComp">' +
+    '</component>' +
+    '</keep-alive>' +
+    '<button @click="change">switch</button>' +
     '</div>',
+  data: {
+    currentComp: 'A'
+  },
+  methods: {
+    change () {
+      this.currentComp = this.currentComp === 'A' ? 'B' : 'A'
+    }
+  },
   components: {
-    Child
+    A,
+    B
   }
 })
 
