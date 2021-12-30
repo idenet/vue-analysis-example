@@ -974,3 +974,9 @@ updated: function updated () {
 
 之后就执行`update`方法，要进行数组的更新了。这时候已经存在节点了，但是我们用的过渡所以他现在不可见。
 `hasMove`中通过`getComputedStyle`拿到`css`属性进行赋值。如果是`delete`方法，这时候因为`kept`值和原数组不同，就会进行重写的`patch`进行`vnode`的移除，然后才执行 原Patch
+
+## Vue-Router
+
+`vue-router`通过`vue`插件的形式进行挂载，在挂载过程中会注册`Vue.mixin`，在实例化过程中，`beforeCreate`中初始化`init`，定义响应式属性`$router`和`$route`。注册`view`和`link`组件。
+
+在初始化`init`过程中，使用`transitionTo`方法进行路由过渡
