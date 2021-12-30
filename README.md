@@ -980,3 +980,12 @@ updated: function updated () {
 `vue-router`通过`vue`插件的形式进行挂载，在挂载过程中会注册`Vue.mixin`，在实例化过程中，`beforeCreate`中初始化`init`，定义响应式属性`$router`和`$route`。注册`view`和`link`组件。
 
 在初始化`init`过程中，使用`transitionTo`方法进行路由过渡
+
+在 `new vue-router`的时候会执行`createMatcher`，
+
+```js
+function createMatcher() {
+  debugger
+}
+```
+该方法中，执行`createRouteMap`，通过循环`router`执行`addRouteRecord`，生成`pathMap、pathList、nameMap`
