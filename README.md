@@ -1006,4 +1006,28 @@ this._modules = new ModuleCollection(options)
 
 和`router`一样，`vuex`也通过`vue.use`注册，并通过`vue.mixin`执行`vuexInit`。在`$options`上赋值`store`。
 
-`new Store`中会执行`new ModuleCollection(options)`。执行`module`的注册。执行`new Module`
+`new Store`中会执行`new ModuleCollection(options)`。执行`module`的注册。执行`new Module`。通过递归将子`module``addChild`到`root`上。
+
+```js
+ debugger
+// and collects all module getters inside this._wrappedGetters
+installModule(this, state, [], this._modules.root)
+```
+
+`installModule`方法注册，所有的`getter mutation action`函数，首先是注册的根函数。然后循环注册`module`内的方法，注意这时候`vuex`会给所有方法前面添加上`namespaced`。通过`Vue.set`给`rootState`上添加`module`的state
+
+```js
+debugger
+resetStoreVM(this, state)
+```
+执行`getter`的响应式操作。第一步申明一个`computed`将`getters`的方法名作为`key`，并赋值之前定义的
+`wrappedGetter(store)`。这里面包裹的是，用户定义的函数。并对`getters`做了`get`的拦截。对`store._vm`进行`new Vue`。
+```js
+store._vm = new Vue({
+ data: {
+   $$state: state
+ },
+ computed: computed
+})
+```
+申明了`$$state`，并且将之前定义的`computed`作为`vue`实例的`computed`。当我访问`store`的`getters`时，我们其实会走`vue`的`computed`，然后拿到`state`

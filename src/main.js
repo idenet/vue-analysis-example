@@ -1,7 +1,7 @@
 import Vue from 'vue'
 import './index.css'
 // import VueRouter from 'vue-router'
-import App from './routerApp.vue'
+import App from './App.vue'
 import Vuex from 'vuex'
 
 Vue.config.productionTip = false
@@ -341,6 +341,7 @@ Vue.config.productionTip = false
 Vue.use(Vuex)
 
 const moduleA = {
+  namespaced: 'a',
   state: {
     a: 0
   },
@@ -361,6 +362,7 @@ const moduleA = {
   }
 }
 const moduleB = {
+  namespaced: 'b',
   state: {
     count: 0
   },
@@ -394,4 +396,4 @@ const vm = new Vue({
   },
   store
 })
-console.log(vm)
+console.log(vm.$store.getters)
