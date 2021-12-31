@@ -989,3 +989,21 @@ function createMatcher() {
 }
 ```
 该方法中，执行`createRouteMap`，通过循环`router`执行`addRouteRecord`，生成`pathMap、pathList、nameMap`
+
+```js
+function match() {
+  debugger
+}
+```
+在`init-->transitionTo`时，会执行`match`，`match`会根据传入的位置和路径，计算出新位置。并匹配到对应的路由`record`。然后根据新的位置和`record`创建新的路径返回
+
+## Vuex
+
+```js
+debugger
+this._modules = new ModuleCollection(options)
+```
+
+和`router`一样，`vuex`也通过`vue.use`注册，并通过`vue.mixin`执行`vuexInit`。在`$options`上赋值`store`。
+
+`new Store`中会执行`new ModuleCollection(options)`。执行`module`的注册。执行`new Module`
