@@ -304,12 +304,41 @@ Vue.config.productionTip = false
 //     }
 //   }
 // })
-// Vue.use(VueRouter)
-
-// // 1. 定义（路由）组件。
-// // 可以从其他文件 import 进来
-// const Foo = { template: '<div>foo</div>' }
-// const Bar = { template: '<div>bar</div>' }
+// 1. 定义（路由）组件。
+// 可以从其他文件 import 进来
+// const Bar = { template: '<div>Bar</div>' }
+// const Foo = {
+//   template: `
+//     <div class="container">
+//       <div>bar</div>
+//       <router-link to="/foo/bar">Go to Bar</router-link>
+//       <router-view></router-view>
+//     </div>
+//   `,
+//   beforeRouteEnter (to, from, next) {
+//     // 在渲染该组件的对应路由被 confirm 前调用
+//     // 不！能！获取组件实例 `this`
+//     // 因为当守卫执行前，组件实例还没被创建
+//     console.log('beforeRouteEnter')
+//     next(vm => {
+//       console.log('这里获取this', vm)
+//     })
+//   },
+//   beforeRouteUpdate (to, from, next) {
+//     // 在当前路由改变，但是该组件被复用时调用
+//     // 举例来说，对于一个带有动态参数的路径 /foo/:id，在 /foo/1 和 /foo/2 之间跳转的时候，
+//     // 由于会渲染同样的 Foo 组件，因此组件实例会被复用。而这个钩子就会在这个情况下被调用。
+//     // 可以访问组件实例 `this`
+//     console.log('beforeRouteUpdate')
+//     next()
+//   },
+//   beforeRouteLeave (to, from, next) {
+//     // 导航离开该组件的对应路由时调用
+//     // 可以访问组件实例 `this`
+//     console.log('beforeRouteLeave')
+//     next()
+//   }
+// }
 
 // // 2. 定义路由
 // // 每个路由应该映射一个组件。 其中"component" 可以是
@@ -317,8 +346,18 @@ Vue.config.productionTip = false
 // // 或者，只是一个组件配置对象。
 // // 我们晚点再讨论嵌套路由。
 // const routes = [
-//   { path: '/foo', component: Foo },
-//   { path: '/bar', component: Bar }
+//   {
+//     path: '/foo',
+//     component: Foo,
+//     beforeEnter: (to, from, next) => {
+//       console.log('路由独享的守卫')
+//       next()
+//     },
+//     children: [
+//       { path: 'bar', component: Bar }
+//     ]
+//   }
+
 // ]
 
 // // 3. 创建 router 实例，然后传 `routes` 配置
@@ -327,16 +366,21 @@ Vue.config.productionTip = false
 //   routes // （缩写）相当于 routes: routes
 // })
 
-// // 4. 创建和挂载根实例。
-// // 记得要通过 router 配置参数注入路由，
-// // 从而让整个应用都有路由功能
-// const vm = new Vue({
-//   el: '#app',
-//   render (h) {
-//     return h(App)
-//   },
-//   router
+// router.beforeEach((to, from, next) => {
+//   console.log('全局前置守卫')
+//   next()
 // })
+
+// router.afterEach((to, from) => {
+//   console.log('全局后置守卫')
+// })
+
+// Vue.config.productionTip = false
+
+// new Vue({
+//   router,
+//   render: h => h(App)
+// }).$mount('#app')
 
 Vue.use(Vuex)
 
